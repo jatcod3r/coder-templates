@@ -1,0 +1,59 @@
+name: push
+
+on: 
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+  schedule:
+    # Re-push all templates?
+    # https://crontab.guru/#0_0_*_*_5
+    - cron: "0 0 * * 5"
+
+permissions:
+  actions: read
+  checks: none
+  contents: read
+  id-token: write
+  deployments: none
+  issues: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: write
+  statuses: none
+
+jobs:
+  quick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel previous runs
+        if: github.event_name == 'pull_request'
+        uses: styfle/cancel-workflow-action@0.12.1
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check formatting
+        uses: dprint/check@v2.2
+  templates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel previous runs
+        if: github.event_name == 'pull_request'
+        uses: styfle/cancel-workflow-action@0.12.1
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Install Coder CLI
+        run: |    
+          curl -L https://coder.com/install.sh | sh
+          curl -X GET http://${{ secrets.CODER_ENV }}/api/v2/organizations/{organization}/templates \
+            -H 'Accept: application/json' \
+            -H 'Coder-Session-Token: ${{ secrets.CODER_SESSION_TOKEN }}'
+
+      - name: Push Templates to Coder
+        run: |
+          ${{ github.workspace }}/.scripts/push.sh \
+            --url ${{ secrets.CODER_ENV }} \
+            --token ${{ secrets.CODER_SESSION_TOKEN }} \
+            --directory ${{ github.workspace }}
