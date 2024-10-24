@@ -27,6 +27,8 @@ permissions:
 jobs:
   quick:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
     steps:
       - name: Cancel previous runs
         if: github.event_name == 'pull_request'
@@ -47,13 +49,9 @@ jobs:
       - name: Install Coder CLI
         run: |    
           curl -L https://coder.com/install.sh | sh
-          curl -X GET http://${{ secrets.CODER_ENV }}/api/v2/organizations/{organization}/templates \
-            -H 'Accept: application/json' \
-            -H 'Coder-Session-Token: ${{ secrets.CODER_SESSION_TOKEN }}'
 
       - name: Push Templates to Coder
         run: |
           ${{ github.workspace }}/.scripts/push.sh \
-            --url ${{ secrets.CODER_ENV }} \
-            --token ${{ secrets.CODER_SESSION_TOKEN }} \
-            --directory ${{ github.workspace }}
+            --directory "${{ github.workspace }}" \
+            --targets "${{ secrets.CODER_TARGETS }}"
