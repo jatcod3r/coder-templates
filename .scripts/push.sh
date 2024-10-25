@@ -16,7 +16,7 @@ function usage() {
   exit 1
 }
 
-# Allow a failing exit status, as user input can cause this
+# Allow a failing exit status
 set +o errexit
 
 LONGOPTS=help,targets:,directory:

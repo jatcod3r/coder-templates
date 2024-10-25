@@ -4,4 +4,6 @@ set -euo pipefail
 
 TEMPLATES=(
     base
+    windows
+    windows-with-disk
 )
